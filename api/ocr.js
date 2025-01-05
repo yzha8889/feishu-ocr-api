@@ -1,4 +1,4 @@
-const FSDK = require('feishu-sdk');
+const { Client } = require('@larksuiteoapi/node-sdk');
 
 module.exports = async (req, res) => {
   // 添加 CORS 头
@@ -12,13 +12,19 @@ module.exports = async (req, res) => {
   }
 
   try {
-    console.log('Starting OCR process');
-    const FAPI = await FSDK(process.env.APP_ID, process.env.APP_SECRET);
+    const client = new Client({
+      appId: process.env.APP_ID,
+      appSecret: process.env.APP_SECRET
+    });
     
     const base64 = req.body.image;
-    const text = await FAPI.ai.ocr(base64);
+    const { data } = await client.api.ocr.v1.image.basic({
+      data: {
+        image: base64
+      }
+    });
     
-    res.json({ text });
+    res.json({ text: data.text_list });
   } catch (error) {
     console.error('Error:', error);
     res.status(500).json({ error: error.message });
