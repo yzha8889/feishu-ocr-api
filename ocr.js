@@ -27,15 +27,18 @@ module.exports = async (req, res) => {
               const reader = new FileReader();
               reader.onload = async () => {
                 try {
-                  const response = await fetch('/', {
+                  console.log('开始发送请求');
+                  const response = await fetch(window.location.href, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ image: reader.result.split(',')[1] })
                   });
                   const data = await response.json();
+                  console.log('收到响应:', data);
                   document.getElementById('result').textContent = 
                     JSON.stringify(data, null, 2);
                 } catch (error) {
+                  console.error('错误:', error);
                   document.getElementById('result').textContent = error.message;
                 }
               };
@@ -49,30 +52,31 @@ module.exports = async (req, res) => {
 
   // 处理 POST 请求 - 处理 OCR
   if (req.method === 'POST') {
+    console.log('收到 POST 请求');
+    console.log('请求体:', req.body);
+    
     try {
+      console.log('初始化飞书客户端');
+      console.log('App ID:', process.env.APP_ID);
+      console.log('App Secret:', '***');
+      
       const client = new Client({
         appId: process.env.APP_ID,
         appSecret: process.env.APP_SECRET
       });
       
-      const base64 = req.body.image;
-      
-      const result = await client.api.ocr.v1.image.basic.post({
-        data: { image: base64 }
+      console.log('开始调用 OCR API');
+      const response = await client.api.ocr.v1.image.basic.post({
+        data: {
+          image: req.body.image
+        }
       });
       
-      res.json(result);
+      console.log('OCR API 响应:', response);
+      res.json(response);
     } catch (error) {
-      console.error('Error:', error);
-      res.status(500).json({ error: error.message });
+      console.error('发生错误:', error);
+      res.status(500).json({ error: error.toString(), stack: error.stack });
     }
-  }
-
-  // 处理 OPTIONS 请求
-  if (req.method === 'OPTIONS') {
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-    return res.status(200).end();
   }
 };
