@@ -2,7 +2,7 @@
   "name": "feishu-ocr",
   "version": "1.0.0",
   "dependencies": {
-    "feishu-sdk": "^0.2.4",
+    "feishu-sdk": "^0.1.2",
     "image-to-base64": "^2.2.0"
   }
 }
