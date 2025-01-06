@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "dependencies": {
     "@larksuiteoapi/node-sdk": "^1.22.0",
+    "axios": "^1.6.2",
     "image-to-base64": "^2.2.0"
   }
 }
