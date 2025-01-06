@@ -1,5 +1,16 @@
 const axios = require('axios');
 
+async function getTenantAccessToken() {
+  const response = await axios.post(
+    'https://open.feishu.cn/open-apis/auth/v3/tenant_access_token/internal',
+    {
+      app_id: process.env.cli_a7fd6d727278d00c,
+      app_secret: process.env.i6toCbZ1UAHsz01xNVEiGfyixXEvnU73
+    }
+  );
+  return response.data.tenant_access_token;
+}
+
 module.exports = async (req, res) => {
   if (req.method === 'GET') {
     res.setHeader('Content-Type', 'text/html');
@@ -39,15 +50,15 @@ module.exports = async (req, res) => {
       </html>
     `);
   }
-
   if (req.method === 'POST') {
     try {
+      const token = await getTenantAccessToken();
       const response = await axios.post(
         'https://open.feishu.cn/open-apis/optical_char_recognition/v1/image/basic',
         { image: req.body.image },
         {
           headers: {
-            'Authorization': `Bearer ${process.env.APP_ID}:${process.env.APP_SECRET}`,
+            'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json'
           }
         }
