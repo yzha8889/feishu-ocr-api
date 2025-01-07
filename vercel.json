@@ -2,14 +2,18 @@
   "version": 2,
   "builds": [
     {
-      "src": "ocr.js",
+      "src": "api/ocr.js",
       "use": "@vercel/node"
     }
   ],
   "routes": [
     {
+      "src": "/api/(.*)",
+      "dest": "/api/ocr.js"
+    },
+    {
       "src": "/(.*)",
-      "dest": "/ocr.js"
+      "dest": "/api/ocr.js"
     }
   ]
 }
