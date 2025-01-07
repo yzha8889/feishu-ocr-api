@@ -17,10 +17,13 @@ module.exports = async (req, res) => {
     return res.end(`
       <!DOCTYPE html>
       <html>
-        <head><meta charset="utf-8"><title>OCR</title></head>
+        <head>
+          <meta charset="utf-8">
+          <title>飞书 OCR 测试</title>
+        </head>
         <body>
           <input type="file" id="file" accept="image/*">
-          <button onclick="upload()">上传</button>
+          <button onclick="upload()">识别图片</button>
           <pre id="result"></pre>
           <script>
             async function upload() {
@@ -30,17 +33,23 @@ module.exports = async (req, res) => {
               const reader = new FileReader();
               reader.onload = async () => {
                 try {
-                  const base64 = reader.result.split(',')[1];
+                  // 确保只发送 base64 编码部分
+                  const base64Data = reader.result.split(',')[1];
+                  console.log('Image size:', base64Data.length);
+                  
                   const res = await fetch('/', {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({image: base64})
+                    body: JSON.stringify({
+                      image: base64Data
+                    })
                   });
                   const data = await res.json();
                   document.getElementById('result').textContent = 
                     JSON.stringify(data, null, 2);
                 } catch (e) {
-                  document.getElementById('result').textContent = e;
+                  document.getElementById('result').textContent = 
+                    '错误: ' + e.toString();
                 }
               };
               reader.readAsDataURL(file);
@@ -50,12 +59,19 @@ module.exports = async (req, res) => {
       </html>
     `);
   }
+
   if (req.method === 'POST') {
     try {
+      // 获取 token
       const token = await getTenantAccessToken();
+      console.log('Got token:', token);
+
+      // 调用 OCR API
       const response = await axios.post(
         'https://open.feishu.cn/open-apis/optical_char_recognition/v1/image/basic',
-        { image: req.body.image },
+        {
+          image: req.body.image // 直接发送 base64 字符串
+        },
         {
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -63,9 +79,15 @@ module.exports = async (req, res) => {
           }
         }
       );
+
+      console.log('OCR response:', response.data);
       res.json(response.data);
     } catch (error) {
-      res.status(500).json(error.response?.data || error.message);
+      console.error('Error:', error.response?.data || error);
+      res.status(500).json({
+        error: error.response?.data || error.message,
+        details: error.response?.data
+      });
     }
   }
 };
